@@ -15,7 +15,7 @@ return {
       tileheight = 32,
       spacing = 0,
       margin = 0,
-      image = "assets/white.png",
+      image = "assets/grassland.png",
       imagewidth = 1024,
       imageheight = 1024,
       properties = {},

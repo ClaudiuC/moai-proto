@@ -39,6 +39,7 @@ function GameMap:initialize()
   self.mapHeight = mapData.height
   self.tileWidth = mapData.tilewidth
   self.tileHeight = mapData.tileheight
+  self.dataLayers = mapData.layers
   
   self.tileset = _parseTileset(self, mapData.tilesets[1])
 end
@@ -48,9 +49,7 @@ local _getMOAIDeck = function(self)
   tileset:setTexture(self.tileset.image)
   tileset:setSize(
     self.tileset.tile_count_x,
-    self.tileset.tile_count_y,
-    self.tileset.tile_width,
-    self.tileset.tile_height
+    self.tileset.tile_count_y
   )
   
   return tileset
@@ -76,8 +75,9 @@ local _parseLayer = function(self, _viewport)
   grid = _getMOAIGrid(self)
   for i = 1, self.mapHeight do
     for j = 1, self.mapWidth do
-      --local tileData = layer.data[(layer.height-i) * layer.width+j]
-      local tileData = 15
+      local tileData = self.dataLayers[1].data[(self.mapHeight-i) * self.mapWidth+j]
+      inspect(tileData)
+      --local tileData = 15
       grid:setTile(j, i, tileData)
     end
   end
