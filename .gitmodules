@@ -1,0 +1,9 @@
+[submodule "core/vendor/inspectlua"]
+	path = core/vendor/inspectlua
+	url = https://github.com/kikito/inspect.lua
+[submodule "core/vendor/middleclass"]
+	path = core/vendor/middleclass
+	url = https://github.com/kikito/middleclass
+[submodule "core/vendor/strict_table"]
+	path = core/vendor/strict_table
+	url = https://github.com/ClaudiuC/strict_table.lua
