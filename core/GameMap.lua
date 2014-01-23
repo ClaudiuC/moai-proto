@@ -26,14 +26,15 @@ local _parseTileset = function(self, tilesetData)
     spacing = tilesetData.spacing,
     margin = tilesetData.margin,
     image = tilesetData.image,
-    -- assuming no margin or spacing for proto
-    tile_count_x = tilesetData.imagewidth / tilesetData.tilewidth,
-    tile_count_y = tilesetData.imageheight / tilesetData.tileheight
+    tile_count_x = 
+      (tilesetData.imagewidth - tilesetData.margin)  / (tilesetData.tilewidth + tilesetData.spacing),
+    tile_count_y = 
+      (tilesetData.imageheight - tilesetData.margin) / (tilesetData.tileheight + tilesetData.spacing)
   }
 end
 
 function GameMap:initialize() 
-  local mapData = require 'assets.map'
+  local mapData = require 'assets.experimental_large_map'
   
   self.mapWidth = mapData.width
   self.mapHeight = mapData.height
@@ -47,17 +48,34 @@ end
 local _getMOAIDeck = function(self) 
   tileset = MOAITileDeck2D.new()
   tileset:setTexture(self.tileset.image)
+  
+  local tileset_width = 
+    (self.tileset.tile_count_x * (self.tileWidth + self.tileset.spacing)) + self.tileset.margin
+  local tileset_height = 
+    (self.tileset.tile_count_y * (self.tileHeight + self.tileset.spacing)) + self.tileset.margin
+    
   tileset:setSize(
+    -- size x, y
     self.tileset.tile_count_x,
-    self.tileset.tile_count_y
+    self.tileset.tile_count_y,
+    -- cell width, height
+    (self.tileWidth + self.tileset.spacing) / tileset_width,
+    (self.tileHeight + self.tileset.spacing) / tileset_height,
+    -- offset y, x
+    self.tileset.spacing / tileset_width, 
+    self.tileset.spacing / tileset_height,
+    self.tileWidth / tileset_width,
+    self.tileHeight / tileset_height
   )
   
+  print(self.tileHeight / 
+      ((self.tileset.tile_count_y * (self.tileHeight + self.tileset.spacing)) + self.tileset.margin))
   return tileset
 end
 
 local _getMOAIGrid = function(self)
   grid = MOAIGrid.new()
-  grid:initDiamondGrid(
+  grid:initRectGrid(
     self.mapWidth,
     self.mapHeight,
     self.tileWidth,
@@ -67,7 +85,7 @@ local _getMOAIGrid = function(self)
   return grid
 end
 
-local _parseLayer = function(self, _viewport)
+local _parseLayer = function(self, _viewport, _data_layer)
   layer = MOAILayer2D.new()
   layer:setViewport(_viewport)
   MOAISim.pushRenderPass(layer)
@@ -75,9 +93,8 @@ local _parseLayer = function(self, _viewport)
   grid = _getMOAIGrid(self)
   for i = 1, self.mapHeight do
     for j = 1, self.mapWidth do
-      local tileData = self.dataLayers[1].data[(self.mapHeight-i) * self.mapWidth+j]
-      inspect(tileData)
-      --local tileData = 15
+      local tileData = _data_layer[(self.mapHeight-i) * self.mapWidth+j]
+      --print(tileData)
       grid:setTile(j, i, tileData)
     end
   end
@@ -85,10 +102,13 @@ local _parseLayer = function(self, _viewport)
   prop = MOAIProp2D.new()
   prop:setDeck(_getMOAIDeck(self))
   prop:setGrid(grid)
-  prop:setLoc(-Display.resolutionX/2, -Display.resolutionY/2)
+  -- Why oh why I wonder
+  prop:setLoc(-Display.resolutionX/4, -Display.resolutionY/4)
   layer:insertProp(prop)
 end
 
 function GameMap:renderMap(_viewport) 
-  _parseLayer(self, _viewport) -- We'll parse more layers here in the future
+  for key, layer in ipairs(self.dataLayers) do
+    _parseLayer(self, _viewport, layer.data) 
+  end
 end
